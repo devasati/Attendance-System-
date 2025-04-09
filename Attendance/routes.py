@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from io import BytesIO
-from test import test
+from test_util import test
 
 
 # Main Entrance Page of website
