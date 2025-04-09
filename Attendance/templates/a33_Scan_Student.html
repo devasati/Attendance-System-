@@ -1,0 +1,48 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+Scan
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Greeting and Instructions -->
+    <div class="greeting text-center mb-4">
+        <h2 class="text-white">Welcome, {{current_user.Name_Student}}!</h2>
+        <p class="text-muted">Please use the button below to register your face for attendance purposes.</p>
+    </div>
+
+    <hr class="text-light">
+
+    <!-- Face scan guidelines -->
+    <div class="guidelines mb-4">
+        <h4 class="text-white">Face Scan Guidelines:</h4>
+        <ul class="text-muted">
+            <li><strong>Ensure that your face is clearly visible with both ears fully exposed.</strong></li>
+            <li><strong>For optimal results, please position yourself in a well-lit environment.</strong></li>
+            <li><strong>Only one person should be in the frame at the time of registration.</strong></li>
+            <li><strong>Avoid wearing accessories such as hats, sunglasses, or masks that may obstruct your
+                face.</strong></li>
+            <li><strong>Make sure your face is properly centered within the frame for accurate recognition.</strong>
+            </li>
+            <li><strong>Keep your eyes open and focus directly on the camera for better detection.</strong></li>
+            <li><strong>Refrain from using filters or makeup that may alter your facial features during
+                registration.</strong></li>
+            <li><strong>Position the camera at eye level for the most effective and precise scan.</strong></li>
+        </ul>
+    </div>
+
+    <hr class="text-light">
+
+    <!-- Scan button -->
+    <div class="greeting text-center mb-4">
+        <a href="{{ url_for('face_register_student_page', student_no=user) }}"
+           class="btn btn-warning btn-lg px-5 py-3 shadow-lg hover-shadow"
+           style="background-color: #f39c12; border-color: #f39c12; color: white; font-weight: bold; border-radius: 12px; text-transform: uppercase; transition: transform 0.3s ease-in-out;">
+            Scan Your Face
+        </a>
+    </div>
+
+</div>
+{% endblock %}

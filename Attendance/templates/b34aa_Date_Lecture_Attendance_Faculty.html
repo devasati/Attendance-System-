@@ -1,0 +1,105 @@
+{% extends 'Base_Faculty.html' %}
+
+{% block title %}
+Date Lecture Attendance
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header Card -->
+    <div class="card bg-light mb-4 border-0 shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0 text-primary">
+                    <i class="fas fa-calendar-check mr-2"></i>Attendance for "{{ date_selected }}"
+                </h4>
+                <form action="/Date_Lecture_Attendance_Faculty/{{ lecture_id }}/{{ date_selected }}" method="post">
+                    <input type="hidden" name="download">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-download mr-2"></i>Download Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Table Card -->
+    <div class="card border-0 shadow">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col" class="py-3">Student Registration No.</th>
+                        <th scope="col" class="py-3">Attendance Time</th>
+                        <th scope="col" class="py-3">Attendance Slot</th>
+                        <th scope="col" class="py-3">Attendance Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for record in stu_records %}
+                    <tr>
+                        <td class="align-middle">{{ record.Attendance_Student_Reg }}</td>
+                        <td class="align-middle">{{ record.Attendance_Time }}</td>
+                        <td class="align-middle">{{ record.Attendance_Slot }}</td>
+                        <td class="align-middle">
+                                <span class="badge
+                                    {% if record.Attendance_Status == 'Present' %}
+                                        badge-success
+                                    {% else %}
+                                        badge-danger
+                                    {% endif %} p-2">
+                                    {{ record.Attendance_Status }}
+                                </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body py-3">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <h5 class="text-muted mb-1">Total Students</h5>
+                    <h3 class="mb-0 text-info">{{ stu_records|length }}</h3>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-muted mb-1">Present</h5>
+                    <h3 class="mb-0 text-success">{{ stu_records|selectattr('Attendance_Status', 'equalto',
+                        'Present')|list|length }}</h3>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-muted mb-1">Absent</h5>
+                    <h3 class="mb-0 text-danger">{{ stu_records|selectattr('Attendance_Status', 'equalto',
+                        'Absent')|list|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .card {
+        border-radius: 0.5rem;
+    }
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+    .table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+    .badge {
+        min-width: 80px;
+    }
+</style>
+{% endblock %}

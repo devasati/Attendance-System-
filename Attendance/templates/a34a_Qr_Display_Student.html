@@ -1,0 +1,94 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+QR Page
+{% endblock %}
+
+{% block content %}
+<div style="background: linear-gradient(to right, #6a1b9a, #00bcd4); min-height: 100vh; padding: 20px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; height: 100%; max-width: 1200px; margin: 0 auto;">
+
+        <!-- QR Code Section -->
+        <div style="
+            border-radius: 12px;
+            flex: 1 1 100%;
+            max-width: 500px;
+            min-width: 300px;
+            height: auto;
+            aspect-ratio: 1/1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            box-sizing: border-box;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        ">
+            <div style="text-align: center; width: 100%;">
+                <img
+                    src="data:image/png;base64,{{ qr_image }}"
+                    alt="QR Code"
+                    style="width: 100%; height: auto; max-width: 400px;"
+                >
+            </div>
+        </div>
+
+        <!-- Information Box Section - Now Responsive -->
+        <div style="
+            border-radius: 12px;
+            flex: 1 1 100%;
+            max-width: 500px;
+            min-width: 300px;
+            background-color: #ffffff;
+            padding: 25px;
+            box-sizing: border-box;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+            font-family: 'Roboto', sans-serif;
+        ">
+
+            <h2 style="
+                color: #2c3e50;
+                font-size: clamp(22px, 3vw, 28px);
+                font-weight: 600;
+                margin-bottom: 20px;
+                text-align: center;
+            ">
+                About This QR
+            </h2>
+
+            <div style="margin-bottom: 15px;">
+                <p style="font-size: clamp(14px, 2vw, 16px); color: #34495e; line-height: 1.6; margin-bottom: 12px;">
+                    <strong>Registration Number:</strong> {{current_user.Registration_No_Student}}
+                </p>
+                <p style="font-size: clamp(14px, 2vw, 16px); color: #34495e; line-height: 1.6; margin-bottom: 12px;">
+                    <strong>Name:</strong> {{current_user.Name_Student}}
+                </p>
+                <p style="font-size: clamp(14px, 2vw, 16px); color: #34495e; line-height: 1.6; margin-bottom: 12px;">
+                    <strong>Course Code:</strong> {{course.Course_Code}}
+                </p>
+                <p style="font-size: clamp(14px, 2vw, 16px); color: #34495e; line-height: 1.6; margin-bottom: 12px;">
+                    <strong>Course Name:</strong> {{course.Course_Name}}
+                </p>
+                <p style="font-size: clamp(14px, 2vw, 16px); color: #34495e; line-height: 1.6; margin-bottom: 12px;">
+                    <strong>Lecture ID:</strong> {{lecture}}
+                </p>
+                <p style="font-size: clamp(14px, 2vw, 16px); color: #34495e; line-height: 1.6; margin-bottom: 12px;">
+                    <strong>QR Date:</strong> {{date_of_qr}}
+                </p>
+                <p style="
+                    font-size: clamp(14px, 2vw, 16px);
+                    color: red;
+                    font-weight: bold;
+                    margin-top: 20px;
+                    text-align: center;
+                ">
+                    Note: Please only use the QR code when the professor instructs you to begin attendance.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,17 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+No Lecture Assigned
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="text-center p-5 bg-dark shadow-lg w-75 w-md-50"
+         style="background: linear-gradient(135deg, #1E3D58 0%, #2A5774 100%); border-radius: 50px;">
+        <h1 class="display-4 mb-3" style="color: #FFD700; font-weight: bold;">Oops! No Classes Assigned Yet</h1>
+        <p class="lead" style="color: #E1E8E1; font-weight: bold;">It seems you have not been assigned to any class at
+            the moment. Please check back later or contact the administration for more details.</p>
+        <a href="{{ url_for('contact_support_student_page') }}" class="btn btn-success btn-lg">Contact Support</a>
+    </div>
+</div>
+{% endblock %}

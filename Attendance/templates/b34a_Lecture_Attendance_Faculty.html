@@ -1,0 +1,41 @@
+{% extends 'Base_Faculty.html' %}
+
+{% block title %}
+Lecture Attendance
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <h4 class="text-center mb-4">Please select a Date to View attendance.</h4>
+    {% if date_records %}
+    <table class="table table-hover table-bordered table-striped table-dark">
+        <thead>
+        <tr>
+            <th scope="col">Attendance Date</th>
+            <th scope="col">Options</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for date in date_records %}
+        <tr>
+            <td>{{ date.Attendance_Date }}</td>
+            <td>
+                <form action="/Lecture_Attendance_Faculty/{{ lecture_id }}"
+                      method="post">
+                    <input type="hidden" name="date_selected" value="{{ date.Attendance_Date }}">
+                    <button type="submit" class="btn btn-outline-success">View Attendance</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle mr-2"></i>No attendance records available.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

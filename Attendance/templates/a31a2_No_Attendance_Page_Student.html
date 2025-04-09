@@ -1,0 +1,92 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+No Attendance Page
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="attendance-card">
+        <div class="card-header">
+            <i class="fas fa-calendar-check"></i>
+            <h1>Attendance Update</h1>
+        </div>
+        <div class="card-body">
+            <p>The attendance for today is currently <span class="highlight">blocked</span> by the professor.</p>
+            <p>It will start in <span class="highlight">some time</span>, please stay tuned for updates.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Base styles */
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Container to center everything */
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    /* Card styling */
+    .attendance-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 400px; /* Reduced card size */
+        overflow: hidden;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .attendance-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* Card header */
+    .card-header {
+        background: linear-gradient(135deg, #2d7a4d, #3a9d5d);
+        color: white;
+        padding: 20px;
+    }
+
+    .card-header i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .card-header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    /* Card body */
+    .card-body {
+        padding: 25px;
+    }
+
+    .card-body p {
+        color: #555;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    /* Highlight text */
+    .highlight {
+        font-weight: 600;
+        color: #e74c3c;
+    }
+</style>
+
+<!-- Include Font Awesome for the icon -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

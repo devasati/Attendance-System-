@@ -1,0 +1,40 @@
+{% extends 'Base_Faculty.html' %}
+
+{% block title %}
+Attendance View
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <h4 class="text-center mb-4">Please select a lecture to view attendance.</h4>
+    <table class="table table-hover table-bordered table-striped table-dark">
+        <thead>
+        <tr>
+            <th scope="col">Course Code</th>
+            <th scope="col">Course Name</th>
+            <th scope="col">Lecture ID</th>
+            <th scope="col">Lecture Slots</th>
+            <th scope="col">Options</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for lecture in faculty_lectures %}
+        <tr>
+            <td>{{ lecture.Available_Course_for_Lecture.Course_Code }}</td>
+            <td>{{ lecture.Available_Course_for_Lecture.Course_Name }}</td>
+            <td>{{ lecture.Lecture_ID }}</td>
+            <td>{{ lecture.Lecture_Slots }}</td>
+            <td>
+                <form action="/Attendance_View_Faculty" method="post">
+                    <input type="hidden" name="lecture_id" value="{{ lecture.Lecture_ID }}">
+                    <button type="submit" class="btn btn-outline-success">View Attendance</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+Lecture Page
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid d-flex flex-column justify-content-center align-items-center vh-100 p-5"
+     style="background-color: #1f2a38; color: #fefefe;">
+
+    <!-- Header Section -->
+    <h1 class="display-4 mb-3 text-light">Welcome to Today's Lecture</h1>
+
+    <p class="lead mb-4 text-light">
+        Please make sure to participate actively. Your attendance will be based on your response.
+    </p>
+
+    <!-- Course Information -->
+    <div class="card shadow-lg mb-5" style="max-width: 600px; width: 100%; background-color: #2c3e50; border: none;">
+        <div class="card-body">
+            <p class="h5 font-weight-bold text-light mb-3">About this Course</p>
+            <p class="mb-2 text-light">Course Name: <strong>{{courseinfo.Course_Name}}</strong></p>
+            <p class="mb-2 text-light">Course Code: <strong>{{courseinfo.Course_Code}}</strong></p>
+            <p class="mb-2 text-light">Course Type: <strong>{{courseinfo.Course_Type}}</strong></p>
+            <p class="mb-2 text-light">Course Credits: <strong>{{courseinfo.Course_Credits}} Credit</strong></p>
+        </div>
+    </div>
+
+    <!-- Attendance Section -->
+    <div class="text-center">
+        <p class="h3 font-weight-bold mb-4 text-light">Today's Attendance:</p>
+        <p class="text-light mb-4" style="font-size: 1.2rem;">
+            Today's Date: {{ date }}
+        </p>
+        <form action="{{ url_for('lecture_student_page', lecture_record=lecture_record) }}" method="post">
+            <button type="submit"
+                    class="btn btn-warning btn-lg px-4 py-2 shadow-lg hover-shadow"
+                    style="background-color: #f39c12; border-color: #f39c12;">
+                Mark Attendance
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

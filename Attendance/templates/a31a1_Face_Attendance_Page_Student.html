@@ -1,0 +1,295 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+Face Attendance Page
+{% endblock %}
+
+{% block content %}
+
+<!-- Main Container -->
+<div class="container d-flex justify-content-center align-items-center min-vh-100 p-3">
+    <!-- Combined Attendance Box -->
+    <div class="card shadow-lg rounded p-4 p-md-5 w-100 w-md-75 w-lg-50"
+         style="background: linear-gradient(135deg, #f7c6c1, #a6e3e9);">
+
+        <!-- Take Your Attendance Title -->
+        <h1 class="text-primary mb-3 mb-md-4 text-center">Take Your Attendance</h1>
+        <p class="text-dark text-center mb-4">Position your face in the frame to mark attendance.</p>
+
+        <!-- Attendance Information -->
+        <div class="mb-4">
+            <p class="text-dark mb-2"><strong>Lecture:</strong> {{ lecture_record }}</p>
+            <p class="text-dark mb-2"><strong>Date:</strong> {{ date_today }}</p>
+            <p class="text-dark mb-2"><strong>Student's Registration Number:</strong> {{ student_no }}</p>
+        </div>
+
+        <!-- Face Scanner Section -->
+        <div class="camera-container mb-4 border rounded overflow-hidden bg-dark">
+            <div class="ratio ratio-16x9 position-relative">
+                <!-- Video element for webcam feed -->
+                <video id="faceScanner" autoplay playsinline class="w-100 h-100 object-fit-cover"></video>
+                <!-- Canvas for capturing frames -->
+                <canvas id="faceCanvas" class="d-none"></canvas>
+                <!-- Face detection frame overlay -->
+                <div class="face-frame"></div>
+            </div>
+            <div class="d-flex justify-content-center gap-3 p-3 bg-light">
+                <button id="startScanner" class="btn btn-primary btn-sm">
+                    <i class="bi bi-camera-video"></i> Start Camera
+                </button>
+                <button id="stopScanner" class="btn btn-danger btn-sm" disabled>
+                    <i class="bi bi-camera-video-off"></i> Stop
+                </button>
+                <button id="takeAttendance" class="btn btn-success btn-sm" disabled>
+                    <i class="bi bi-check-circle"></i> Take Attendance
+                </button>
+            </div>
+            <div id="scanResult" class="text-center p-2"></div>
+            <div id="faceDetectionStatus" class="text-center p-2 text-light"></div>
+        </div>
+
+        <!-- Complete Button -->
+        <button class="btn btn-warning btn-lg w-100" id="submitBtn" disabled>Complete Attendance</button>
+
+    </div>
+</div>
+
+<!-- Include Bootstrap Icons and Face Detection Libraries -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<style>
+    .face-frame {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 80%;
+        border: 3px solid #00ff00;
+        box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
+        border-radius: 16px;
+    }
+
+    .detection-box {
+        position: absolute;
+        border: 2px solid #00ff00;
+        background-color: rgba(0, 255, 0, 0.1);
+    }
+</style>
+
+<script>
+    const video = document.getElementById('faceScanner');
+    const canvas = document.getElementById('faceCanvas');
+    const startBtn = document.getElementById('startScanner');
+    const stopBtn = document.getElementById('stopScanner');
+    const takeAttendanceBtn = document.getElementById('takeAttendance');
+    const submitBtn = document.getElementById('submitBtn');
+    const scanResult = document.getElementById('scanResult');
+    const faceDetectionStatus = document.getElementById('faceDetectionStatus');
+    let stream = null;
+    let faceDetectionInterval = null;
+    let isFaceDetected = false;
+    let modelsLoaded = false;
+
+
+    // Quick browser check
+    if (!navigator.mediaDevices?.getUserMedia || typeof faceapi === 'undefined') {
+        document.getElementById('scanResult').innerHTML = `<div class="alert alert-danger">
+                                                           ❌ Your browser doesn't support this feature. Use Chrome/Firefox.
+                                                           </div>`;
+        document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    }
+
+    // Load face-api.js models
+    async function loadModels() {
+        faceDetectionStatus.innerHTML = `<div class="text-info">
+                                             <span class="spinner-border spinner-border-sm"></span>
+                                             Loading face detection...
+                                         </div>`;
+        try {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models');
+            modelsLoaded = true;
+            faceDetectionStatus.innerHTML = '<div class="text-success">Face detection ready</div>';
+        } catch (error) {
+            console.error("Error loading face detection models:", error);
+            faceDetectionStatus.innerHTML = '<div class="text-danger">Error loading face detection</div>';
+        }
+    }
+
+    // Initialize face detection models
+    loadModels();
+
+    // Detect faces in video stream
+    async function detectFaces() {
+
+        if (!modelsLoaded) {
+            faceDetectionStatus.innerHTML = '<div class="text-warning">Models still loading...</div>';
+            return;
+        }
+
+        if (!stream) return;
+
+        try {
+            const detections = await faceapi.detectAllFaces(
+                video,
+                new faceapi.TinyFaceDetectorOptions()
+            );
+
+            if (detections.length > 1) {
+                isFaceDetected = false;
+                takeAttendanceBtn.disabled = true;
+                faceDetectionStatus.innerHTML = '<div class="text-success">Multiple faces detected! Ensure only <strong>your</strong> face is visible.</div>';
+            }
+            else if (detections.length === 1) {
+                isFaceDetected = true;
+                takeAttendanceBtn.disabled = false;
+                faceDetectionStatus.innerHTML = '<div class="text-success">Face detected</div>';
+            }
+            else {
+                isFaceDetected = false;
+                takeAttendanceBtn.disabled = true;
+                faceDetectionStatus.innerHTML = '<div class="text-warning">No face detected</div>';
+            }
+        } catch (error) {
+            console.error("Face detection error:", error);
+            isFaceDetected = false;
+            takeAttendanceBtn.disabled = true;
+            faceDetectionStatus.innerHTML = '<div class="text-danger">Face detection error</div>';
+        }
+    }
+
+    // Start camera
+    startBtn.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "user", // Use front camera
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            });
+            video.srcObject = stream;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            // Start face detection every 500ms
+            faceDetectionInterval = setInterval(detectFaces, 500);
+        } catch (err) {
+            console.error("Error accessing camera: ", err);
+            scanResult.innerHTML = `<div class="alert alert-danger">
+                                        <strong>Camera Error:</strong>
+                                        ${err.message || 'Could not access camera. Please check permissions.'}
+                                   </div>`;
+            startBtn.disabled = false;
+        }
+    });
+
+    // Stop camera
+    stopBtn.addEventListener('click', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            stream = null;
+
+            // Stop face detection
+            clearInterval(faceDetectionInterval);
+            faceDetectionInterval = null;
+        }
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        takeAttendanceBtn.disabled = true;
+        isFaceDetected = false;
+        faceDetectionStatus.innerHTML = '<div class="text-muted">Camera stopped</div>';
+    });
+
+    // Take Attendance button click handler
+    takeAttendanceBtn.addEventListener('click', async () => {
+        if (!stream || !isFaceDetected) return;
+
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Draw current video frame to canvas
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert canvas image to blob
+        canvas.toBlob(async (blob) => {
+            try {
+
+                // Turn Take Attendance button to Processing state.
+                takeAttendanceBtn.disabled = true;
+                takeAttendanceBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+
+                // Create form data and append the image
+                const formData = new FormData();
+                formData.append('image', blob, 'attendance.jpg');
+                formData.append('student_no', '{{ student_no }}');
+                formData.append('lecture_record', '{{ lecture_record }}');
+                formData.append('date_today', '{{ date_today }}');
+
+                // Send to server
+                const response = await fetch(`/Face_Attendance_Page_Student/{{ lecture_record }}/{{ date_today }}/{{ student_no }}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+
+                    //Stop Face Detection
+                    clearInterval(faceDetectionInterval);
+                    faceDetectionInterval = null;
+                    faceDetectionStatus.innerHTML = '<div class="text-success">Completed Process</div>';
+
+                    scanResult.innerHTML = '<div class="alert alert-success">Attendance successfully recorded! Click Complete Attendance to finish.</div>';
+                    submitBtn.disabled = false;
+
+                    // Keep Take Attendance button disabled after success
+                    takeAttendanceBtn.disabled = true;
+                    isFaceDetected = false;
+
+                } else {
+
+                    scanResult.innerHTML = `<div class="alert alert-danger">${result.message || 'Failed to record attendance'}</div>`;
+                    takeAttendanceBtn.disabled = false;
+
+                }
+            } catch (error) {
+
+                console.error('Error:', error);
+                scanResult.innerHTML = '<div class="alert alert-danger">Error sending attendance data</div>';
+                takeAttendanceBtn.disabled = false;
+
+            } finally {
+
+                //The button always reverts to its original state from Processing
+                takeAttendanceBtn.innerHTML = '<i class="bi bi-check-circle"></i> Take Attendance';
+
+            }
+        }, 'image/jpeg', 0.8);
+    });
+
+    // Submit button click handler
+    submitBtn.addEventListener('click', () => {
+        window.location.href = `/Attendance_Confirmation_Page_Student/{{ lecture_record }}/{{ date_today }}/{{ student_no }}`;
+    });
+
+    // Stop camera when the page is unloaded
+    window.addEventListener('beforeunload', () => {
+        if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        }
+        if (faceDetectionInterval) {
+        clearInterval(faceDetectionInterval);
+        }
+    });
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% endblock %}

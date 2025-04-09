@@ -1,0 +1,37 @@
+{% extends 'Base_Student.html' %}
+{% block title %}
+Profile
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 pb-4">
+            <div class="card shadow-lg p-4" style="background-color: #32a89e; color: white; border-radius: 20px;">
+                <h2 class="text-center mb-4" style="font-size: 2rem; font-weight: 700; color: #FFD700;">Your
+                    Profile</h2>
+                {% if current_user.is_authenticated %}
+                <div class="mb-3">
+                    <p class="fw-bold" style="font-size: 1.2rem;">Registration Number:</p>
+                    <p style="font-size: 1rem;">{{ current_user.Registration_No_Student }}</p>
+                </div>
+                <div class="mb-3">
+                    <p class="fw-bold" style="font-size: 1.2rem;">Name:</p>
+                    <p style="font-size: 1rem;">{{ current_user.Name_Student }}</p>
+                </div>
+                <div class="mb-3">
+                    <p class="fw-bold" style="font-size: 1.2rem;">Email:</p>
+                    <p style="font-size: 1rem;">{{ current_user.Email_Address_Student }}</p>
+                </div>
+                <div class="mb-3">
+                    <p class="fw-bold" style="font-size: 1.2rem;">Branch:</p>
+                    <p style="font-size: 1rem;">{{ current_user.Branch_Student }}</p>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Please log in to view your profile details.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

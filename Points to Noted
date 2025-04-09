@@ -1,0 +1,6 @@
+1.It Should be kept in mind that while using Add_Students_to_Lecture you are adding all the
+registered students in the class/lecture who have not been assigned any class/lecture of
+that course. If he is already a part of some lecture in same course then also he will not
+be added and will be treated as conflicted. Also if he is already part of same lecture then he
+will be treated as already added student.
+

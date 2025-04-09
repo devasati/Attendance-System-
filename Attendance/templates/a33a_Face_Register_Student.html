@@ -1,0 +1,428 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+Face Registration
+{% endblock %}
+
+{% block content %}
+<!-- Main Container -->
+<div class="container d-flex justify-content-center align-items-center min-vh-100 p-3">
+    <!-- Face Registration Card -->
+    <div class="card shadow-lg rounded-lg overflow-hidden border-0 w-100 w-md-75 w-lg-50">
+
+        <!-- Card Header with Gradient Background -->
+        <div class="card-header bg-gradient-primary py-4">
+            <div class="text-center text-white">
+                <h1 class="h3 font-weight-bold mb-2">Face Registration</h1>
+                <p class="mb-0 opacity-75">Register your face for secure attendance tracking</p>
+            </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body px-4 px-md-5 py-4 py-md-5">
+            <!-- Student ID Badge -->
+            <div class="text-center mb-4">
+                <div class="badge bg-light text-dark p-3 rounded-pill shadow-sm" style="font-size: 1.2rem;">
+                    <span class="fw-normal">Student ID:</span>
+                    <strong class="fw-bold text-primary ms-2">{{ student_no }}</strong>
+                </div>
+            </div>
+
+            <!-- Camera Section -->
+            <div class="scanner-container mb-4">
+                <!-- Camera Preview with Frame -->
+                <div class="camera-frame mb-4 position-relative">
+                    <div class="ratio ratio-16x9">
+                        <video id="faceScanner" autoplay playsinline class="w-100 h-100 object-fit-cover bg-dark rounded-lg"></video>
+                        <canvas id="faceCanvas" class="d-none"></canvas>
+                        <div class="face-guide"></div>
+                    </div>
+                    <div class="face-overlay-text text-center text-white position-absolute top-50 start-50 translate-middle">
+                        <i class="bi bi-person-circle display-4 opacity-50"></i>
+                        <p class="mt-2 mb-0">Position your face within the frame</p>
+                    </div>
+                </div>
+
+                <!-- Camera Controls -->
+                <div class="controls bg-light p-3 rounded-lg d-flex flex-column flex-md-row justify-content-center gap-3 mb-3">
+                    <button id="startScanner" class="btn btn-primary btn-lg flex-grow-1 shadow-sm">
+                        <i class="bi bi-camera-video-fill me-2"></i> Start Camera
+                    </button>
+                    <button id="stopScanner" class="btn btn-danger btn-lg flex-grow-1 shadow-sm" disabled>
+                        <i class="bi bi-stop-fill me-2"></i> Stop
+                    </button>
+                    <button id="captureBtn" class="btn btn-success btn-lg flex-grow-1 shadow-sm" disabled>
+                        <i class="bi bi-camera-fill me-2"></i> Capture
+                    </button>
+                </div>
+
+                <!-- Status Indicators -->
+                <div id="faceDetectionStatus" class="status-message alert alert-info text-center mb-3">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <span class="fw-medium">Please start the camera to begin</span>
+                    </div>
+                </div>
+
+                <!-- Permanent Capture Count Display -->
+                <div class="status-message alert alert-light text-center mb-3">
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="bi bi-collection me-2 text-primary"></i>
+                        <span>Captures: <span id="captureCount">0</span>/5</span>
+                    </div>
+                </div>
+
+                <!-- Success Message Section (will appear after successful capture) -->
+                <div id="scanResult" class="status-message alert alert-light text-center d-none">
+                    <!-- This will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Completion Section -->
+            <div class="completion-section text-center mt-4 pt-3 border-top">
+                <form id="complete-form" action="{{ url_for('face_register_student_page', student_no=student_no) }}" method="post">
+                    <input type="hidden" name="action" value="complete">
+                    <button type="submit" id="completeBtn" class="btn btn-warning btn-lg px-4 py-2 shadow text-white" style="background-color: #ff6b35; border-color: #ff6b35;" disabled>
+                        <i class="bi bi-check-circle-fill me-2"></i> Complete Registration
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Include Bootstrap Icons and Face Detection Libraries -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    }
+
+    .camera-frame {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .face-guide {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70%;
+        height: 70%;
+        border: 3px solid rgba(0, 255, 0, 0.7);
+        box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .face-overlay-text {
+        z-index: 5;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .status-message {
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .controls button {
+        transition: all 0.2s ease;
+    }
+
+    .controls button:hover {
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .controls {
+            flex-direction: column;
+        }
+
+        .card {
+            width: 95% !important;
+        }
+    }
+</style>
+
+<script>
+    // DOM Elements
+    const video = document.getElementById('faceScanner');
+    const canvas = document.getElementById('faceCanvas');
+    const startBtn = document.getElementById('startScanner');
+    const stopBtn = document.getElementById('stopScanner');
+    const captureBtn = document.getElementById('captureBtn');
+    const completeBtn = document.getElementById('completeBtn');
+    const statusMessage = document.getElementById('faceDetectionStatus');
+    const scanResult = document.getElementById('scanResult');
+    const captureCount = document.getElementById('captureCount');
+
+    // Variables
+    let stream = null;
+    let captures = 0;
+    const requiredCaptures = 5;
+    let faceDetectionInterval = null;
+    let isFaceDetected = false;
+    let modelsLoaded = false;
+
+    // Quick browser check
+    if (!navigator.mediaDevices?.getUserMedia || typeof faceapi === 'undefined') {
+        scanResult.innerHTML = `<div class="alert alert-danger">
+                               <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                               Your browser doesn't support this feature. Please use Chrome or Firefox.
+                               </div>`;
+        scanResult.classList.remove('d-none');
+        document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    }
+
+    // Load face-api.js models
+    async function loadModels() {
+        statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span class="fw-medium">Loading face detection models...</span>
+                                   </div>`;
+        try {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models');
+            modelsLoaded = true;
+            statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-check-circle-fill me-2 text-success"></i>
+                                        <span class="fw-medium">Ready to scan</span>
+                                      </div>`;
+        } catch (error) {
+            console.error("Error loading face detection models:", error);
+            statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-x-circle-fill me-2 text-danger"></i>
+                                        <span class="fw-medium">Error loading face detection</span>
+                                      </div>`;
+        }
+    }
+
+    // Initialize face detection models
+    loadModels();
+
+    // Detect faces in video stream
+    async function detectFaces() {
+        if (!modelsLoaded) {
+            statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-hourglass me-2 text-warning"></i>
+                                        <span class="fw-medium">Models still loading...</span>
+                                      </div>`;
+            return;
+        }
+
+        if (!stream) return;
+
+        try {
+            const detections = await faceapi.detectAllFaces(
+                video,
+                new faceapi.TinyFaceDetectorOptions()
+            );
+
+            if (detections.length > 1) {
+                isFaceDetected = false;
+                captureBtn.disabled = true;
+                statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people-fill me-2 text-warning"></i>
+                                            <span class="fw-medium">Multiple faces detected</span>
+                                          </div>`;
+            }
+            else if (detections.length === 1) {
+                isFaceDetected = true;
+                captureBtn.disabled = false;
+                statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-person-check-fill me-2 text-success"></i>
+                                            <span class="fw-medium">Face detected</span>
+                                          </div>`;
+            }
+            else {
+                isFaceDetected = false;
+                captureBtn.disabled = true;
+                statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-person-x-fill me-2 text-warning"></i>
+                                            <span class="fw-medium">No face detected</span>
+                                          </div>`;
+            }
+        } catch (error) {
+            console.error("Face detection error:", error);
+            isFaceDetected = false;
+            captureBtn.disabled = true;
+            statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+                                        <span class="fw-medium">Detection error</span>
+                                      </div>`;
+        }
+    }
+
+    // Start Camera
+    startBtn.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: 1280,
+                    height: 720,
+                    facingMode: 'user'
+                },
+                audio: false
+            });
+
+            video.srcObject = stream;
+
+            // Enable/disable buttons
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            captureBtn.disabled = true;
+
+            // Start face detection
+            faceDetectionInterval = setInterval(detectFaces, 500);
+
+            // Update status
+            statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-camera-video-fill me-2 text-info"></i>
+                                        <span class="fw-medium">Camera active</span>
+                                      </div>`;
+
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+                                        <span class="fw-medium">Error accessing camera: ${error.message}</span>
+                                      </div>`;
+        }
+    });
+
+    // Stop Camera
+    stopBtn.addEventListener('click', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            stream = null;
+
+            // Stop face detection
+            clearInterval(faceDetectionInterval);
+            faceDetectionInterval = null;
+        }
+
+        // Enable/disable buttons
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        captureBtn.disabled = true;
+        isFaceDetected = false;
+
+        // Update status
+        statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    <span class="fw-medium">Camera stopped. Click "Start Camera" to begin.</span>
+                                  </div>`;
+    });
+
+    // Capture Image
+    captureBtn.addEventListener('click', async () => {
+        if (!stream || !isFaceDetected) return;
+
+        // Save original button state
+        const originalText = captureBtn.innerHTML;
+        const originalDisabledState = captureBtn.disabled;
+
+        // Set button to processing state
+        captureBtn.disabled = true;
+        captureBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...`;
+
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Draw current video frame to canvas
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert canvas to blob
+        canvas.toBlob(async (blob) => {
+            try {
+                // Create form data
+                const formData = new FormData();
+                formData.append('action', 'capture');
+                formData.append('image', blob, 'capture.jpg');
+
+                // Send to server
+                const response = await fetch(`/Face_Register_Student/${encodeURIComponent('{{ student_no }}')}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        captures++;
+                        captureCount.textContent = captures;
+
+                        // Update status
+                        statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>
+                                                    <span class="fw-medium">Capture #${captures} successful!</span>
+                                                  </div>`;
+
+                        // Show success message
+                        scanResult.innerHTML = `<div class="alert alert-success">
+                                                <i class="bi bi-check-circle-fill me-2"></i>
+                                                Face successfully captured!
+                                               </div>`;
+                        scanResult.classList.remove('d-none');
+
+                        // Hide success message after 3 seconds
+                        setTimeout(() => {
+                            scanResult.classList.add('d-none');
+                        }, 3000);
+
+                        // Enable complete button if enough captures
+                        if (captures >= requiredCaptures) {
+                            completeBtn.disabled = false;
+                        }
+                    } else {
+                        throw new Error(data.message || 'Server error');
+                    }
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                console.error('Error uploading capture:', error);
+                statusMessage.innerHTML = `<div class="d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+                                            <span class="fw-medium">Error saving capture: ${error.message}</span>
+                                          </div>`;
+                scanResult.innerHTML = `<div class="alert alert-danger">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        ${error.message || 'Error saving capture'}
+                                       </div>`;
+                scanResult.classList.remove('d-none');
+            } finally {
+                // Revert button to original state
+                captureBtn.disabled = originalDisabledState;
+                captureBtn.innerHTML = originalText;
+            }
+        }, 'image/jpeg', 0.9);
+    });
+
+    // Handle window close to stop camera
+    window.addEventListener('beforeunload', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        if (faceDetectionInterval) {
+            clearInterval(faceDetectionInterval);
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% endblock %}

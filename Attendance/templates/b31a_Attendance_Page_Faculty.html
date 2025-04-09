@@ -1,0 +1,217 @@
+{% extends 'Base_Faculty.html' %}
+
+{% block title %}
+Attendance Page
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <!-- Information Section -->
+    <div class="info-section">
+        <h3>Lecture Information</h3>
+        <div class="info-item">
+            <strong>Lecture ID:</strong> <span class="lecture-id">{{ lecture_id }}</span>
+        </div>
+        <div class="info-item">
+            <strong>Date:</strong> <span class="date-today">{{ date_today }}</span>
+        </div>
+        <div class="info-item">
+            <strong>Course:</strong> <span class="course-name">{{ course }}</span>
+        </div>
+    </div>
+
+    <!-- Buttons Section -->
+    <h2>Manage Attendance</h2>
+    <p>Click to start or stop the attendance session.</p>
+
+    <div class="button-container" style="display: flex; justify-content: space-between; gap: 10px;">
+        <form id="start-form"
+              action="{{ url_for('attendance_page_faculty_page', lecture_id=lecture_id, course=course, date_today=date_today) }}"
+              method="post">
+            <input type="hidden" name="action" value="start">
+            <button type="submit" class="btn btn-start" onclick="startAttendance(event)">Start Attendance</button>
+        </form>
+
+        <form id="stop-form"
+              action="{{ url_for('attendance_page_faculty_page', lecture_id=lecture_id, course=course, date_today=date_today) }}"
+              method="post">
+            <input type="hidden" name="action" value="stop">
+            <button type="submit" class="btn btn-stop" onclick="stopAttendance(event)">Stop Attendance</button>
+        </form>
+    </div>
+
+    <!-- Timer Display -->
+    <div id="timer-container" style="text-align: center; margin-top: 30px;">
+        <p style="color:white; font-size: 24px;">Time Remaining: <span id="timer" style="font-size: 24px;">00:00</span>
+        </p>
+    </div>
+
+</div>
+
+<style>
+    body {
+        background-color: #E1D5E7; /* Lavender */
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+        border-radius: 12px;
+        background-color: #9B59B6; /* Purple */
+        color: #ECF0F1;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        font-size: 2rem;
+        color: #ECF0F1;
+        margin-bottom: 20px;
+    }
+
+    p {
+        font-size: 1.1rem;
+        color: #BDC3C7;
+        margin-bottom: 40px;
+    }
+
+    .info-section {
+        background: linear-gradient(135deg, #F39C12, #8E44AD); /* Sunset orange to dark purple */
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .info-section h3 {
+        color: #fff;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .info-item {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    .info-item strong {
+        color: #ccffff;
+    }
+
+    .info-item span {
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .btn {
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        font-weight: bold;
+    }
+
+    .btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-start {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    .btn-stop {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .btn-start:active, .btn-stop:active {
+        transform: scale(1);
+        box-shadow: none;
+    }
+
+    #timer {
+    color: #fce303; /* Specifically ensure the timer text is Yellow */
+    }
+
+</style>
+
+<script>
+    // Set up timer and form submission using AJAX
+    let countdown;
+    let timerElement = document.getElementById('timer');
+
+    function startAttendance(event) {
+        event.preventDefault(); // Prevent the form from submitting immediately
+        alert("Attendance started!");
+
+        let timeRemaining = 90; // 90 seconds (1 minute 30 seconds)
+
+        // Start the countdown
+        countdown = setInterval(function () {
+            let minutes = Math.floor(timeRemaining / 60);
+            let seconds = timeRemaining % 60;
+            timerElement.textContent = `${formatTime(minutes)}:${formatTime(seconds)}`;
+            timeRemaining--;
+
+            if (timeRemaining < 0) {
+                clearInterval(countdown);  // Stop the countdown
+                stopAttendance();  // Automatically stop attendance
+            }
+        }, 1000);
+
+        // Submit the form via AJAX (without page reload)
+        submitForm('start');
+    }
+
+    function stopAttendance(event) {
+        if (event) event.preventDefault(); // Prevent form submission if event is triggered from button click
+        clearInterval(countdown);  // Stop the countdown
+        timerElement.textContent = '00:00'; // Reset the timer display to 00:00
+        alert("Attendance stopped!");
+
+        // Submit the form via AJAX (without page reload)
+        submitForm('stop');
+    }
+
+    function submitForm(action) {
+        let formData = new FormData();
+        formData.append('action', action);
+        formData.append('lecture_id', '{{ lecture_id }}');
+        formData.append('course', '{{ course }}');
+        formData.append('date_today', '{{ date_today }}');
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '{{ url_for("attendance_page_faculty_page", lecture_id=lecture_id, course=course, date_today=date_today) }}', true);
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                console.log('Form submitted successfully');
+            } else {
+                console.error('Error submitting form');
+            }
+        };
+        xhr.send(formData);
+    }
+
+    function formatTime(time) {
+        return time < 10 ? '0' + time : time;
+    }
+</script>
+
+{% endblock %}

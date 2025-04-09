@@ -1,0 +1,41 @@
+{% extends 'Base_Student.html' %}
+
+{% block title %}
+Registration
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Available Courses</h2>
+    <table class="table table-hover table-bordered table-striped table-dark">
+
+        <thead>
+        <tr>
+            <th scope="col">Course Code</th>
+            <th scope="col">Course Name</th>
+            <th scope="col">Course Type</th>
+            <th scope="col">Course Credits</th>
+            <th scope="col">Options</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for course in courses %}
+        <tr>
+            <td>{{ course.Course_Code }}</td>
+            <td>{{ course.Course_Name }}</td>
+            <td>{{ course.Course_Type }}</td>
+            <td>{{ course.Course_Credits }} Credits</td>
+            <td>
+                <form action="/Registration_Student" method="post">
+                    <input type="hidden" name="course_id" value="{{ course.Course_ID }}">
+                    <button type="submit" class="btn btn-outline-success">Register</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+{% endblock %}
