@@ -15,8 +15,18 @@ import cv2
 import numpy as np
 import pandas as pd
 from io import BytesIO
+
+# ---------**********-----------
+# Changed for Deployment
+import sys
+from pathlib import Path
+
+spoofing_path = Path(__file__).parent.parent / "modules" / "Silent-Face-Anti-Spoofing-master"
+sys.path.append(str(spoofing_path))
 from test_util import test
 
+
+# ----------**********-----------
 
 # Main Entrance Page of website
 @app.route('/')
