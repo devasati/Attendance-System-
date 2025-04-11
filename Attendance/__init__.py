@@ -2,11 +2,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
-import os
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')  # Deployment
+app.config['SQLALCHEMY_DATABASE_URI'] = 'YOUR_LINK' # Paste your Database Link
 app.config['SECRET_KEY'] = '62f768c1bee1ef382d720ad6'
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
