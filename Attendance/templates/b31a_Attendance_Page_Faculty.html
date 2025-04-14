@@ -23,8 +23,17 @@ Attendance Page
     </div>
 
     <!-- Buttons Section -->
-    <h2>Manage Attendance</h2>
-    <p>Click to start or stop the attendance session.</p>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+        <div>
+            <h2>Manage Attendance</h2>
+            <p style="margin-top: 8px;">Click to start or stop the attendance session.</p>
+        </div>
+        <div class="time-input-container" style="margin-top: 8px;">
+            <label for="duration" style="display: block; margin-bottom: 5px; color: white;">Duration (minutes):</label>
+            <input type="number" id="duration" name="duration" min="1" max="60" value="1"
+                   style="padding: 8px; border-radius: 4px; border: none; width: 60px;">
+        </div>
+    </div>
 
     <div class="button-container" style="display: flex; justify-content: space-between; gap: 10px;">
         <form id="start-form"
@@ -149,6 +158,14 @@ Attendance Page
     color: #fce303; /* Specifically ensure the timer text is Yellow */
     }
 
+    .time-input-container {
+        text-align: center;
+    }
+
+    .time-input-container input {
+        text-align: center;
+    }
+
 </style>
 
 <script>
@@ -158,12 +175,15 @@ Attendance Page
 
     function startAttendance(event) {
         event.preventDefault(); // Prevent the form from submitting immediately
+
+        // Variable Duration Segment
+        let durationInput = document.getElementById('duration');
+        let durationMinutes = parseInt(durationInput.value) || 1; // Helps in case of Errors
+        durationMinutes = Math.min(Math.max(durationMinutes, 1), 60); // Helps in case of Errors/False Error
         alert("Attendance started!");
+        let timeRemaining = durationMinutes * 60; // Convert minutes to seconds
 
-        let timeRemaining = 90; // 90 seconds (1 minute 30 seconds)
-
-        // Start the countdown
-        countdown = setInterval(function () {
+        countdown = setInterval(function () {                   // Start the countdown
             let minutes = Math.floor(timeRemaining / 60);
             let seconds = timeRemaining % 60;
             timerElement.textContent = `${formatTime(minutes)}:${formatTime(seconds)}`;
